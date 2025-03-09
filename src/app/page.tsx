@@ -17,11 +17,6 @@ export default function Home() {
               className="w-full border-[#2a9d8f] py-6 pl-10 text-base sm:w-[300px]"
             />
           </div>
-          <Link href="/posts/create" className="w-full sm:w-auto">
-            <Button className="w-full bg-[#e76f51] py-6 text-base hover:bg-[#f4a261] sm:w-auto">
-              Create Post
-            </Button>
-          </Link>
         </div>
       </div>
 
