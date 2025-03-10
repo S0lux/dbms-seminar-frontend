@@ -16,22 +16,26 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authAction } from "@/api/auth.api";
+import useAuth from "@/hooks/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const authAction = useAuth.useLogin();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
-
-    // Simulate API call
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
     try {
-      // const response = await fetch('/v1/auth/login', {...})
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await authAction.mutateAsync({ email, password });
       router.push("/");
-    } catch (error) {
-      console.error("Login failed:", error);
+    } catch (err) {
+      if (err instanceof Error) setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -54,6 +58,7 @@ export default function LoginPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="your.email@example.com"
                 required
@@ -62,15 +67,14 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-[#e76f51] hover:underline"
-                >
-                  Forgot password?
-                </Link>
               </div>
-              <Input id="password" type="password" required />
+              <Input id="password" type="password" required name="password" />
             </div>
+            {error && (
+              <CardDescription className="text-red-500">
+                {error}
+              </CardDescription>
+            )}
             <Button
               type="submit"
               className="w-full bg-[#2a9d8f] hover:bg-[#264653]"

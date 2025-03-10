@@ -4,12 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogIn, User, FileText, Home } from "lucide-react";
+import { LogIn, FileText } from "lucide-react";
+
+import useAuth from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export default function Header() {
   const pathname = usePathname();
   // Check Logged In Here
-  const isLoggedIn = true;
+  const { data, error } = useAuth.useGetMe();
+  const isLoggedIn = data ? true : false;
+  useEffect(() => {}, [isLoggedIn]);
+  console.log("user data:", data);
 
   return (
     <header className="border-b border-[#2a9d8f]/20 lg:px-20">
@@ -40,10 +46,7 @@ export default function Header() {
           {isLoggedIn ? (
             <Link href="/profile">
               <Avatar className="h-8 w-8 cursor-pointer">
-                <AvatarImage
-                  src="/placeholder.svg?height=32&width=32"
-                  alt="User"
-                />
+                <AvatarImage src={data?.profileImage} alt="User" />
                 <AvatarFallback className="bg-[#e9c46a] text-[#264653]">
                   JS
                 </AvatarFallback>

@@ -16,22 +16,39 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useAuth from "@/hooks/useAuth";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const authAction = useAuth.useRegister();
 
   // Simulate API call
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
-
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    const displayName = formData.get("displayName") as string;
+    if (password !== confirmPassword) {
+      setError("Password does not match");
+      setIsLoading(false);
+      return;
+    }
     try {
       // const response = await fetch('/v1/users/register', {...})
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await authAction.mutateAsync({
+        email,
+        password,
+        displayName,
+      });
+      alert("Account created");
       router.push("/login");
     } catch (error) {
-      console.error("Registration failed:", error);
+      if (error instanceof Error) setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -52,6 +69,7 @@ export default function RegisterPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="your.email@example.com"
                 required
@@ -61,18 +79,25 @@ export default function RegisterPage() {
               <Label htmlFor="displayName">Display Name</Label>
               <Input
                 id="displayName"
+                name="displayName"
                 placeholder="How you'll appear to others"
                 required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Input id="password" type="password" name="password" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input id="confirmPassword" type="password" required />
+              <Input
+                id="confirmPassword"
+                type="password"
+                name="confirmPassword"
+                required
+              />
             </div>
+            <CardDescription className="text-red-500">{error}</CardDescription>
             <Button
               type="submit"
               className="w-full bg-[#e76f51] hover:bg-[#f4a261]"

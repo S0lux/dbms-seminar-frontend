@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,19 +15,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogOut, Edit2 } from "lucide-react";
+import { authAction } from "@/api/auth.api";
+import { User } from "@/types/user";
+import useAuth from "@/hooks/useAuth";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const authAction = useAuth.useLogout();
+  const { data, error } = useAuth.useGetMe();
 
-  // Mock user data
-  const [userData, setUserData] = useState({
-    username: "johndoe",
-    displayName: "John Doe",
-    email: "john.doe@example.com",
-    avatar: "/placeholder.svg?height=100&width=100",
-  });
+  // user data
+  //const [userData, setUserData] = useState<typeof User>();
+
+  // useEffect(() => {
+  //   getMe();
+  // }, []);
+
+  // async function getMe() {
+  //   const res = await authAction.useGetMe();
+  //   if (res instanceof User) setUserData(res);
+  // }
 
   async function handleSave() {
     setIsLoading(true);
@@ -44,9 +53,14 @@ export default function ProfilePage() {
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     // Call your logout API here
-    router.push("/login");
+    try {
+      await authAction.mutateAsync();
+      router.push("/login");
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
@@ -73,9 +87,9 @@ export default function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center space-y-3">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={userData.avatar} alt={userData.displayName} />
+              <AvatarImage src={data?.profileImage} alt={data?.displayName} />
               <AvatarFallback className="bg-[#e9c46a] text-[#264653]">
-                {userData.displayName
+                {data?.displayName
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
@@ -93,7 +107,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
@@ -104,29 +118,29 @@ export default function ProfilePage() {
                   setUserData({ ...userData, username: e.target.value })
                 }
               />
-            </div>
+            </div> */}
             <div className="space-y-2">
               <Label htmlFor="displayName">Display Name</Label>
               <Input
                 id="displayName"
-                value={userData.displayName}
+                value={data?.displayName}
                 readOnly={!isEditing}
                 className={!isEditing ? "bg-gray-50" : ""}
-                onChange={(e) =>
-                  setUserData({ ...userData, displayName: e.target.value })
-                }
+                // onChange={(e) =>
+                //   setUserData({ ...userData, displayName: e.target.value })
+                // }
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                value={userData.email}
+                value={data?.email}
                 readOnly={!isEditing}
                 className={!isEditing ? "bg-gray-50" : ""}
-                onChange={(e) =>
-                  setUserData({ ...userData, email: e.target.value })
-                }
+                // onChange={(e) =>
+                //   setUserData({ ...userData, email: e.target.value })
+                // }
               />
             </div>
           </div>
