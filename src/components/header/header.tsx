@@ -15,7 +15,6 @@ export default function Header() {
   const { data, error } = useAuth.useGetMe();
   const isLoggedIn = data ? true : false;
   useEffect(() => {}, [isLoggedIn]);
-  console.log("user data:", data);
 
   return (
     <header className="border-b border-[#2a9d8f]/20 lg:px-20">

@@ -17,33 +17,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft } from "lucide-react";
+import { usePost } from "@/hooks/usePost";
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { data } = usePost.useGetPostById(params.id);
   const [formData, setFormData] = useState({
-    title: "",
-    content: "",
+    title: data?.title,
+    content: data?.content,
   });
-
-  // Simulate fetching post data
-  useEffect(() => {
-    // fetch(`/v1/posts/${params.id}`).then(...)
-
-    // Mock data
-    setFormData({
-      title: "Understanding React Server Components",
-      content: `React Server Components are a new way to build React applications that leverage the power of the server.
-      
-They allow you to render components on the server and stream them to the client, reducing the amount of JavaScript that needs to be sent to the browser.
-
-This can lead to faster page loads and a better user experience, especially on slower devices or networks.
-
-Server Components can access server-side resources directly, like databases or file systems, without having to create API endpoints.
-
-They work alongside Client Components, which handle interactivity and state on the client.`,
-    });
-  }, [params.id]);
+  const postAction = usePost.useUpdatePost(params.id);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -55,11 +39,12 @@ They work alongside Client Components, which handle interactivity and state on t
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
+    const content = formData.content;
 
     // Simulate API call
     try {
-      // const response = await fetch(`/v1/posts/${params.id}`, { method: 'PATCH', ... })
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await postAction.mutateAsync(content!);
+      alert("Post updated!");
       router.push(`/posts/${params.id}`);
     } catch (error) {
       console.error("Failed to update post:", error);
@@ -92,14 +77,7 @@ They work alongside Client Components, which handle interactivity and state on t
           >
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter a descriptive title"
-                required
-              />
+              <Input id="title" name="title" readOnly value={formData.title} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
@@ -126,7 +104,7 @@ They work alongside Client Components, which handle interactivity and state on t
           <Button
             type="submit"
             form="edit-post-form"
-            disabled={isLoading}
+            disabled={isLoading || formData.content?.trim().length === 0}
             className="bg-[#e76f51] hover:bg-[#f4a261]"
           >
             {isLoading ? "Saving..." : "Update Post"}

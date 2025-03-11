@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft } from "lucide-react";
+import { usePost } from "@/hooks/usePost";
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function CreatePostPage() {
     title: "",
     content: "",
   });
+  const postAction = usePost.useCreatePost();
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -37,11 +39,10 @@ export default function CreatePostPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
     try {
-      // const response = await fetch('/v1/posts', { method: 'POST', ... })
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push("/");
+      const res = await postAction.mutateAsync(formData);
+      alert("Post created!");
+      router.push(`/`);
     } catch (error) {
       console.error("Failed to create post:", error);
     } finally {

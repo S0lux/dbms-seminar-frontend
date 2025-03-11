@@ -21,7 +21,7 @@ import useAuth from "@/hooks/useAuth";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
+  //const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const authAction = useAuth.useLogout();
   const { data, error } = useAuth.useGetMe();
@@ -38,20 +38,20 @@ export default function ProfilePage() {
   //   if (res instanceof User) setUserData(res);
   // }
 
-  async function handleSave() {
-    setIsLoading(true);
+  // async function handleSave() {
+  //   setIsLoading(true);
 
-    // Simulate API call
-    try {
-      // Call your API here
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Update failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  //   // Simulate API call
+  //   try {
+  //     // Call your API here
+  //     await new Promise((resolve) => setTimeout(resolve, 1000));
+  //     setIsEditing(false);
+  //   } catch (error) {
+  //     console.error("Update failed:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
 
   async function handleLogout() {
     // Call your logout API here
@@ -71,14 +71,14 @@ export default function ProfilePage() {
             <CardTitle className="text-2xl font-bold text-[#264653]">
               Profile
             </CardTitle>
-            <Button
+            {/* <Button
               variant="outline"
               size="icon"
               onClick={() => setIsEditing(!isEditing)}
               className="border-[#2a9d8f] text-[#2a9d8f]"
             >
               <Edit2 className="h-4 w-4" />
-            </Button>
+            </Button> */}
           </div>
           <CardDescription>
             View and manage your profile information
@@ -95,7 +95,7 @@ export default function ProfilePage() {
                   .join("")}
               </AvatarFallback>
             </Avatar>
-            {isEditing && (
+            {/* {isEditing && (
               <Button
                 variant="outline"
                 size="sm"
@@ -103,7 +103,7 @@ export default function ProfilePage() {
               >
                 Change Avatar
               </Button>
-            )}
+            )} */}
           </div>
 
           <div className="space-y-4">
@@ -124,8 +124,9 @@ export default function ProfilePage() {
               <Input
                 id="displayName"
                 value={data?.displayName}
-                readOnly={!isEditing}
-                className={!isEditing ? "bg-gray-50" : ""}
+                //readOnly={!isEditing}
+                readOnly={true}
+                //className={!isEditing ? "bg-gray-50" : ""}
                 // onChange={(e) =>
                 //   setUserData({ ...userData, displayName: e.target.value })
                 // }
@@ -136,8 +137,9 @@ export default function ProfilePage() {
               <Input
                 id="email"
                 value={data?.email}
-                readOnly={!isEditing}
-                className={!isEditing ? "bg-gray-50" : ""}
+                readOnly={true}
+                //readOnly={!isEditing}
+                //className={!isEditing ? "bg-gray-50" : ""}
                 // onChange={(e) =>
                 //   setUserData({ ...userData, email: e.target.value })
                 // }
@@ -155,7 +157,7 @@ export default function ProfilePage() {
             Logout
           </Button>
 
-          {isEditing && (
+          {/* {isEditing && (
             <Button
               onClick={handleSave}
               disabled={isLoading}
@@ -163,7 +165,7 @@ export default function ProfilePage() {
             >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
-          )}
+          )} */}
         </CardFooter>
       </Card>
     </div>

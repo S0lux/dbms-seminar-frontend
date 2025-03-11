@@ -3,14 +3,20 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { usePost } from "@/hooks/usePost";
+import useAuth from "@/hooks/useAuth";
+import { useState } from "react";
+import { Vote, VoteType } from "@/types/post";
 
 interface PostCardProps {
   id: string;
   title: string;
   preview: string;
   author: string;
-  votes: number;
+  voteScore: number;
+  voteInfo: Vote[];
   image?: string;
+  refetch?: () => void;
 }
 
 export default function PostCard({
@@ -18,9 +24,45 @@ export default function PostCard({
   title,
   preview,
   author,
-  votes,
+  voteScore,
+  voteInfo,
   image,
+  refetch,
 }: PostCardProps) {
+  const { data: user } = useAuth.useGetMe();
+
+  const votePostAction = usePost.useVotePost(id);
+  const unVotePostAction = usePost.useRemoveVote(id);
+
+  const [voteStatus, setVoteStatus] = useState(
+    voteInfo.find((v) => v.user === user?.id)?.type ?? "",
+  );
+
+  async function handleVote(voteType: VoteType) {
+    try {
+      if (voteStatus === voteType) {
+        await handleUnVote();
+      } else {
+        await votePostAction.mutateAsync(voteType);
+        setVoteStatus(voteType);
+      }
+    } catch (error) {
+      console.error("Failed to vote", error);
+      alert("Failed to vote");
+    } finally {
+      refetch && refetch();
+    }
+  }
+
+  async function handleUnVote() {
+    try {
+      await unVotePostAction.mutateAsync();
+      setVoteStatus("");
+    } catch (error) {
+      console.error("Failed to unvote", error);
+      alert("Failed to unvote");
+    }
+  }
   return (
     <Card className="w-full overflow-hidden border-[#2a9d8f] transition-all hover:shadow-md">
       {image && (
@@ -45,21 +87,29 @@ export default function PostCard({
       </CardContent>
       <CardFooter className="flex items-center justify-between bg-gray-50 px-6 py-4">
         <div className="flex items-center gap-1">
-          <span className="text-sm font-medium">{votes}</span>
+          <span className="text-sm font-medium">{voteScore}</span>
           <div className="flex gap-1">
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-[#e76f51]"
+              onClick={() => handleVote(VoteType.UPVOTE)}
             >
-              <ThumbsUp className="h-4 w-4" />
+              <ThumbsUp
+                className="h-4 w-4"
+                fill={voteStatus === "upvote" ? "#e76f51" : "#FFF"}
+              />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-[#e76f51]"
+              onClick={() => handleVote(VoteType.DOWNVOTE)}
             >
-              <ThumbsDown className="h-4 w-4" />
+              <ThumbsDown
+                className="h-4 w-4"
+                fill={voteStatus === "downvote" ? "#e76f51" : "#FFF"}
+              />
             </Button>
           </div>
         </div>

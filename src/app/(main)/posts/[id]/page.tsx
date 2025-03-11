@@ -22,36 +22,47 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { usePost } from "@/hooks/usePost";
+import useAuth from "@/hooks/useAuth";
+import { VoteType } from "@/types/post";
 
 export default function PostDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { data: post } = usePost.useGetPostById(params.id);
+  const { data: user } = useAuth.useGetMe();
+
+  const votePostAction = usePost.useVotePost(params.id);
+  const unVotePostAction = usePost.useRemoveVote(params.id);
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [voteCount, setVoteCount] = useState(42);
+  const isAuthor = post?.author.id === user?.id;
 
-  // Mock post data
-  const post = {
-    id: params.id,
-    title: "Understanding React Server Components",
-    content: `
-      React Server Components are a new way to build React applications that leverage the power of the server.
-      
-      They allow you to render components on the server and stream them to the client, reducing the amount of JavaScript that needs to be sent to the browser.
-      
-      This can lead to faster page loads and a better user experience, especially on slower devices or networks.
-      
-      Server Components can access server-side resources directly, like databases or file systems, without having to create API endpoints.
-      
-      They work alongside Client Components, which handle interactivity and state on the client.
-    `,
-    author: "Jane Smith",
-    authorId: "user-123",
-    createdAt: "2023-05-15T10:30:00Z",
-    isAuthor: true, // Check if the user is the author of the post
-  };
+  const [voteStatus, setVoteStatus] = useState(
+    post?.votes.find((v) => v.user === user?.id)?.type ?? "",
+  );
 
-  function handleVote(type: "up" | "down") {
-    // fetch(`/v1/posts/${params.id}/interaction`, { method: 'PATCH', ... })
-    setVoteCount((prev) => (type === "up" ? prev + 1 : prev - 1));
+  async function handleVote(voteType: VoteType) {
+    try {
+      if (voteStatus === voteType) {
+        await handleUnVote();
+      } else {
+        await votePostAction.mutateAsync(voteType);
+        setVoteStatus(voteType);
+      }
+    } catch (error) {
+      console.error("Failed to vote", error);
+      alert("Failed to vote");
+    }
+  }
+
+  async function handleUnVote() {
+    try {
+      await unVotePostAction.mutateAsync();
+      setVoteStatus("");
+    } catch (error) {
+      console.error("Failed to unvote", error);
+      alert("Failed to unvote");
+    }
   }
 
   function handleDelete() {
@@ -72,8 +83,8 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
       <Card className="border-[#2a9d8f]">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-[#264653]">{post.title}</h1>
-            {post.isAuthor && (
+            <h1 className="text-3xl font-bold text-[#264653]">{post?.title}</h1>
+            {isAuthor && (
               <div className="flex gap-2">
                 <Link href={`/posts/${params.id}/edit`}>
                   <Button
@@ -99,20 +110,22 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt={post.author}
+                src={post?.author.profileImage}
+                alt={"Author profile image"}
               />
               <AvatarFallback className="bg-[#e9c46a] text-[#264653]">
-                {post.author
+                {post?.author.displayName
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium">{post.author}</p>
+              <p className="text-sm font-medium">{post?.author.displayName}</p>
               <p className="text-xs text-gray-500">
-                {new Date(post.createdAt).toLocaleDateString()}
+                {post?.postedAt
+                  ? new Date(post!.postedAt).toLocaleDateString()
+                  : "N/A"}
               </p>
             </div>
           </div>
@@ -120,7 +133,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
 
         <CardContent>
           <div className="prose max-w-none">
-            {post.content.split("\n\n").map((paragraph, i) => (
+            {post?.content.split("\n\n").map((paragraph, i) => (
               <p key={i} className="mb-4">
                 {paragraph}
               </p>
@@ -135,18 +148,24 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                 variant="ghost"
                 size="icon"
                 className="text-[#e76f51]"
-                onClick={() => handleVote("up")}
+                onClick={() => handleVote(VoteType.UPVOTE)}
               >
-                <ThumbsUp className="h-5 w-5" />
+                <ThumbsUp
+                  className="h-5 w-5"
+                  fill={voteStatus === "upvote" ? "#e76f51" : "#FFF"}
+                />
               </Button>
-              <span className="font-medium">{voteCount}</span>
+              <span className="font-medium">{post?.voteScore}</span>
               <Button
                 variant="ghost"
                 size="icon"
                 className="text-[#e76f51]"
-                onClick={() => handleVote("down")}
+                onClick={() => handleVote(VoteType.DOWNVOTE)}
               >
-                <ThumbsDown className="h-5 w-5" />
+                <ThumbsDown
+                  className="h-5 w-5"
+                  fill={voteStatus === "downvote" ? "#e76f51" : "#FFF"}
+                />
               </Button>
             </div>
           </div>
